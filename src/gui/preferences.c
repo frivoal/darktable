@@ -205,6 +205,33 @@ static void use_sys_font_callback(GtkWidget *widget,
   reload_ui_last_theme();
 }
 
+static void use_rounded_header_callback(GtkWidget *widget,
+                                        gpointer user_data)
+{
+  dt_conf_set_bool("themes/rounded-header",
+                   gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+  reload_ui_last_theme();
+}
+
+static void use_condensed_control_callback(GtkWidget *widget,
+                                           gpointer user_data)
+{
+  dt_conf_set_bool("themes/condensed",
+                   gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)));
+
+  reload_ui_last_theme();
+}
+
+static void use_colored_accent_callback(GtkWidget *widget,
+                                        gpointer user_data)
+{
+  const int selected = dt_bauhaus_combobox_get(widget);
+
+  dt_conf_set_int("themes/colored-accent", selected);
+  reload_ui_last_theme();
+}
+
 static void save_usercss(GtkTextBuffer *buffer)
 {
   // get file locations
@@ -412,6 +439,65 @@ static void init_tab_general(GtkWidget *dialog,
   g_signal_connect(G_OBJECT(widget), "value-changed",
                    G_CALLBACK(theme_callback), 0);
   gtk_widget_set_tooltip_text(widget, _("set the theme for the user interface"));
+
+  // theme variants
+
+  // condensed controls
+  GtkWidget *t_condensed = gtk_check_button_new();
+  label = gtk_label_new(_("condensed panels' controls"));
+  gtk_widget_set_name(label, "theme-variant");
+  gtk_widget_set_halign(label, GTK_ALIGN_START);
+  labelev = gtk_event_box_new();
+  gtk_widget_add_events(labelev, GDK_BUTTON_PRESS_MASK);
+  gtk_container_add(GTK_CONTAINER(labelev), label);
+  gtk_grid_attach(GTK_GRID(grid), labelev, 0, line++, 1, 1);
+  gtk_grid_attach_next_to(GTK_GRID(grid), t_condensed, labelev, GTK_POS_RIGHT, 1, 1);
+  gtk_widget_set_tooltip_text(t_condensed, _("use condensed panels' controls"));
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(t_condensed),
+                               dt_conf_get_bool("themes/condensed"));
+  g_signal_connect(G_OBJECT(t_condensed), "toggled",
+                   G_CALLBACK(use_condensed_control_callback),
+                  (gpointer)t_condensed);
+
+  // rounded header
+  GtkWidget *t_rounded = gtk_check_button_new();
+  label = gtk_label_new(_("rounded header variant"));
+  gtk_widget_set_name(label, "theme-variant");
+  gtk_widget_set_halign(label, GTK_ALIGN_START);
+  labelev = gtk_event_box_new();
+  gtk_widget_add_events(labelev, GDK_BUTTON_PRESS_MASK);
+  gtk_container_add(GTK_CONTAINER(labelev), label);
+  gtk_grid_attach(GTK_GRID(grid), labelev, 0, line++, 1, 1);
+  gtk_grid_attach_next_to(GTK_GRID(grid), t_rounded, labelev, GTK_POS_RIGHT, 1, 1);
+  gtk_widget_set_tooltip_text(t_rounded, _("use rounded module's header variant"));
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(t_rounded),
+                               dt_conf_get_bool("themes/rounded-header"));
+  g_signal_connect(G_OBJECT(t_rounded), "toggled",
+                   G_CALLBACK(use_rounded_header_callback), (gpointer)t_rounded);
+
+  // colored accent
+  label = gtk_label_new(_("colored accent"));
+  gtk_widget_set_name(label, "theme-variant");
+  gtk_widget_set_halign(label, GTK_ALIGN_START);
+  widget = dt_bauhaus_combobox_new(NULL);
+  dt_bauhaus_combobox_set_selected_text_align(widget, DT_BAUHAUS_COMBOBOX_ALIGN_LEFT);
+
+  labelev = gtk_event_box_new();
+  gtk_widget_add_events(labelev, GDK_BUTTON_PRESS_MASK);
+  gtk_container_add(GTK_CONTAINER(labelev), label);
+  gtk_grid_attach(GTK_GRID(grid), labelev, 0, line++, 1, 1);
+  gtk_grid_attach_next_to(GTK_GRID(grid), widget, labelev, GTK_POS_RIGHT, 1, 1);
+  dt_bauhaus_combobox_add_aligned(widget, _("none"), DT_BAUHAUS_COMBOBOX_ALIGN_LEFT);
+  dt_bauhaus_combobox_add_aligned(widget, _("green"), DT_BAUHAUS_COMBOBOX_ALIGN_LEFT);
+  dt_bauhaus_combobox_add_aligned(widget, _("blue"), DT_BAUHAUS_COMBOBOX_ALIGN_LEFT);
+  dt_bauhaus_combobox_add_aligned(widget, _("yellow"), DT_BAUHAUS_COMBOBOX_ALIGN_LEFT);
+  dt_bauhaus_combobox_add_aligned(widget, _("orange"), DT_BAUHAUS_COMBOBOX_ALIGN_LEFT);
+  dt_bauhaus_combobox_set
+    (widget, dt_conf_get_int("themes/colored-accent"));
+  g_signal_connect(G_OBJECT(widget), "value-changed",
+                   G_CALLBACK(use_colored_accent_callback), 0);
+  gtk_widget_set_tooltip_text(widget,
+                              _("set the theme colored accent for the interface"));
 
   //Font size check and spin buttons
   GtkWidget *usesysfont = gtk_check_button_new();
